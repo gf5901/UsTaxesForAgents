@@ -1,0 +1,18 @@
+---
+description: UsTaxes data model and import workflow for parsing tax forms into loadable JSON
+globs: src/core/data/**/*.ts,src/redux/**/*.ts,my-files/**
+alwaysApply: false
+---
+
+# UsTaxes import and data model
+
+**Import workflow:** User provides tax docs (PDF or images in workspace). Agent parses them and produces a JSON file that can be loaded via the app’s **User Settings → Load**. Load overwrites current state.
+
+**State shape (serialized):** Root has `assets`, `Y2019`…`Y2024`, `activeYear`. Each year is `Information` with `w2s`, `f1099s`, `taxPayer`, `stateResidencies`, etc. Dates in JSON must be ISO strings (keys matching `date` or `Date`). Use `null` for optional fields like `itemizedDeductions`; omit or use `[]` for empty arrays.
+
+**Key types (see `src/core/data/index.ts`):**
+- **W-2:** `IncomeW2` — `income`, `medicareIncome`, `fedWithholding`, `ssWages`, `ssWithholding`, `medicareWithholding`, `employer?`, `personRole` (`PRIMARY`|`SPOUSE`), `state?`, `stateWages?`, `stateWithholding?`, `box12?` (e.g. `{ "D": number, "DD": number }`), `occupation` (string, can be `""`).
+- **1099s:** `Supported1099` = 1099-INT, 1099-DIV, 1099-B, 1099-R, SSA-1099 only. Each is `Income1099<Type, FormData>` with `payer`, `type`, `form`, `personRole`. **1099-MISC is not supported** — tell user to enter that data manually (e.g. Schedule E or Other income).
+- **State:** Use `State` enum (e.g. `"WA"`, `"CA"`).
+
+**Reference:** Full `Information` and blank shape in `src/redux/reducer.ts` (`blankState`). Serialization: `src/redux/store.ts` (`serializeTransform` uses keys matching `/(^date)|(Date)/`).

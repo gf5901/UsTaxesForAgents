@@ -3,7 +3,7 @@ import { Helmet } from 'react-helmet'
 import { usePager } from './pager'
 import Alert from '@material-ui/lab/Alert'
 import { useSelector } from 'react-redux'
-import { Information, Asset, State, TaxYear } from 'ustaxes/core/data'
+import { Information, Asset, TaxYear } from 'ustaxes/core/data'
 import { YearsTaxesState } from 'ustaxes/redux'
 
 import yearFormBuilder from 'ustaxes/forms/YearForms'
@@ -58,10 +58,8 @@ export default function CreatePDF(): ReactElement {
   }, [info])
 
   const lastName = info.taxPayer.primaryPerson?.lastName
-  const residency: State | undefined = info.stateResidencies[0]?.state
 
   const federalFileName = `${lastName ?? 'Tax'}-1040.pdf`
-  const stateFileName = `${lastName ?? 'StateTax'}-${residency}.pdf`
 
   const { navButtons } = usePager()
 
@@ -77,8 +75,12 @@ export default function CreatePDF(): ReactElement {
   const stateReturn = async (): Promise<void> => {
     const builder = yearFormBuilder(year, info, assets)
 
-    const r1 = await runAsync(builder.stateReturnBytes())
-    const r2 = await r1.mapAsync((bytes) => savePDF(bytes, stateFileName))
+    const r1 = await runAsync(builder.stateReturnBytesByState())
+    const r2 = await r1.mapAsync(async (perState) => {
+      for (const { state, bytes } of perState) {
+        await savePDF(bytes, `${lastName ?? 'StateTax'}-${state}.pdf`)
+      }
+    })
     return r2.orThrow()
   }
 
@@ -98,11 +100,9 @@ export default function CreatePDF(): ReactElement {
               Create Federal 1040
             </Button>
           </Box>
-          {(() => {
-            if (info.stateResidencies.length > 0) {
-              return <h3>State: {info.stateResidencies[0].state} </h3>
-            }
-          })()}
+          {stateForms.length > 0 ? (
+            <h3>State: {stateForms.map((f) => f.state).join(', ')}</h3>
+          ) : null}
           <Box marginBottom={2}>
             {(() => {
               if (stateErrors.length === 0) {
@@ -112,8 +112,9 @@ export default function CreatePDF(): ReactElement {
                     onClick={intentionallyFloat(stateReturn)}
                     variant="contained"
                     color="primary"
+                    disabled={stateForms.length === 0}
                   >
-                    Create {residency} Return
+                    Create state return{stateForms.length !== 1 ? 's' : ''}
                   </Button>
                 )
               }

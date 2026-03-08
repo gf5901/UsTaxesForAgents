@@ -1,0 +1,51 @@
+---
+description: Conventions for implementing state tax form classes
+globs: src/forms/**/stateForms/**/*.ts
+alwaysApply: false
+---
+
+# State form conventions
+
+## File structure per state (e.g. UT)
+
+```
+src/forms/Y20XX/stateForms/ST/
+  index.ts       — default export: (f1040: F1040) => new MainForm(f1040)
+  MainForm.ts    — extends StateForm, implements fields()
+  Schedule.ts    — attachments (e.g. nonresident schedule)
+  Parameters.ts  — tax rates, brackets, constants for the year
+```
+
+## Required properties
+
+```typescript
+export default class MainForm extends Form {
+  formName = 'TC-40'        // must match PDF filename (without .pdf)
+  state: State = 'UT'       // 2-letter abbreviation
+  formOrder = 0             // ordering within same state
+}
+```
+
+## fields() pattern
+
+- Return `Field[]` with length matching the PDF field count exactly
+- Use formgen output (`npm run formgen <pdf>`) to determine field indices
+- Strings go to text fields, booleans to checkboxes, numbers are auto-rounded
+- Use `undefined` for empty fields
+
+## Nonresident detection
+
+```typescript
+isNonresident = (): boolean =>
+  !this.info.stateResidencies.some((r) => r.state === 'ST')
+```
+
+## Income-state derivation
+
+States are derived from `f1040.info.realEstate[].address.state`. Registration is in `Y20XX/stateForms/index.ts`. Only states with an entry in `stateForms` get forms generated.
+
+## Common pitfalls
+
+- PDF fields with `maxLength` will throw if the string is too long
+- `displayRound()` returns `undefined` when the rounded value is 0
+- ESLint with `CI=true` treats warnings as errors; avoid unnecessary conditionals

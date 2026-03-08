@@ -2,6 +2,10 @@ import Form from 'ustaxes/core/irsForms/Form'
 import { TaxYear } from 'ustaxes/core/data'
 import F1040For2020 from 'ustaxes/forms/Y2020/irsForms/F1040'
 import F1040For2021 from 'ustaxes/forms/Y2021/irsForms/F1040'
+import F1040For2022 from 'ustaxes/forms/Y2022/irsForms/F1040'
+import F1040For2023 from 'ustaxes/forms/Y2023/irsForms/F1040'
+import F1040For2024 from 'ustaxes/forms/Y2024/irsForms/F1040'
+import F1040For2025 from 'ustaxes/forms/Y2025/irsForms/F1040'
 
 interface Credit {
   name: string
@@ -74,6 +78,25 @@ export const SummaryCreatorFor2021: SummaryCreator<F1040For2021> = {
   })
 }
 
+const summaryCreatorForRecentYears = (
+  f: F1040For2022 | F1040For2023 | F1040For2024 | F1040For2025
+): SummaryData => ({
+  credits: [
+    {
+      name: 'Earned income credit',
+      value: f.scheduleEIC.credit(),
+      allowed: f.scheduleEIC.allowed()
+    }
+  ],
+  worksheets: [
+    ...(f.qualifiedAndCapGainsWorksheet !== undefined
+      ? [f.qualifiedAndCapGainsWorksheet.getSummaryData()]
+      : [])
+  ],
+  refundAmount: f.l35a(),
+  amountOwed: f.l37()
+})
+
 export const createSummary = (
   year: TaxYear,
   forms: Form[]
@@ -92,6 +115,18 @@ export const createSummary = (
     }
     case 'Y2021': {
       return SummaryCreatorFor2021.summary(f1040 as F1040For2021)
+    }
+    case 'Y2022': {
+      return summaryCreatorForRecentYears(f1040 as F1040For2022)
+    }
+    case 'Y2023': {
+      return summaryCreatorForRecentYears(f1040 as F1040For2023)
+    }
+    case 'Y2024': {
+      return summaryCreatorForRecentYears(f1040 as F1040For2024)
+    }
+    case 'Y2025': {
+      return summaryCreatorForRecentYears(f1040 as F1040For2025)
     }
   }
 }

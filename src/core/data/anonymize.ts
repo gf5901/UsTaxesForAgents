@@ -148,5 +148,9 @@ export default (input: YearsTaxesState): YearsTaxesState => ({
   ...input,
   Y2019: anonymizeInformation(input.Y2019),
   Y2020: anonymizeInformation(input.Y2020),
-  Y2021: anonymizeInformation(input.Y2021)
+  Y2021: anonymizeInformation(input.Y2021),
+  Y2022: anonymizeInformation(input.Y2022),
+  Y2023: anonymizeInformation(input.Y2023),
+  Y2024: anonymizeInformation(input.Y2024),
+  Y2025: anonymizeInformation(input.Y2025)
 })

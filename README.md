@@ -5,6 +5,8 @@
 
 </div>
 
+> **This fork (UsTaxesForAgents)** is aimed at **AI agents and CLI workflows**. You can generate federal and state tax PDFs from a JSON input file without running the web app—ideal for use with Cursor, Claude Code, or other agents that need to fill forms from structured data. See [CLI for AI agents](#cli-for-ai-agents) below.
+
 ## What is UsTaxes?
 
 UsTaxes is a free, open-source tax filing application that can be used to file the Federal 1040 form. It is available in both [web](https://ustaxes.org/) and [desktop][desktop-releases] versions. It is provided free of charge and requires no sharing of personal data.
@@ -85,7 +87,17 @@ To ensure the project is fun for every contributor, please review:
 
 ## Get Started
 
-This application can be run as either a web application or a [standalone desktop application](#user-content-desktop-application)
+This application can be run as a **CLI** (for agents), a **web application**, or a [standalone desktop application](#user-content-desktop-application).
+
+### CLI for AI agents
+
+Generate federal and state PDFs from a JSON file (e.g. exported from the web app or built by an agent):
+
+```sh
+npm run cli -- my-files/parsed-import.json -o my-files/output
+```
+
+Options: `--output, -o DIR` (default: `my-files/output`), `--year, -y YYYY`, `--federal-only`. The JSON must include `activeYear` and the corresponding year key (e.g. `Y2025`). Output is one PDF per return (e.g. `LastName-1040.pdf`, `LastName-UT.pdf`).
 
 ### Web application
 
@@ -149,9 +161,9 @@ Please reach out to us on our [discord][discord-url] if you run into any problem
 [cargo-docs]: https://doc.rust-lang.org/cargo/getting-started/installation.html
 [discord-badge]: https://img.shields.io/discord/812156892343828500?logo=Discord
 [discord-url]: https://discord.gg/dAaz472mPz
-[github-release]: https://github.com/ustaxes/UsTaxes/releases/latest
-[release-badge]: https://badgen.net/github/release/ustaxes/ustaxes
-[desktop-releases]: https://github.com/ustaxes/UsTaxes/releases/
-[github-issues]: https://github.com/ustaxes/ustaxes/issues
+[github-release]: https://github.com/gf5901/UsTaxesForAgents/releases/latest
+[release-badge]: https://badgen.net/github/release/gf5901/UsTaxesForAgents
+[desktop-releases]: https://github.com/gf5901/UsTaxesForAgents/releases/
+[github-issues]: https://github.com/gf5901/UsTaxesForAgents/issues
 [tauri-setup]: https://tauri.studio/en/docs/getting-started/intro/#setting-up-your-environment
 [tauri-root]: https://tauri.studio

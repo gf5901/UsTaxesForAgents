@@ -1,0 +1,52 @@
+---
+description: JSON import format for tax data used by the CLI
+globs: my-files/**/*.json
+alwaysApply: false
+---
+
+# JSON import format
+
+The CLI reads a JSON file matching the `Information` type from `src/core/data/index.ts`.
+
+## Top-level structure
+
+```json
+{
+  "activeYear": "Y2025",
+  "assets": [],
+  "Y2025": { ... }
+}
+```
+
+## Year data shape
+
+Each year key contains:
+
+- `taxPayer` — `{ filingStatus, primaryPerson, spouse?, dependents[] }`
+- `w2s[]` — W-2 wage data (income, withholding, employer, state)
+- `f1099s[]` — 1099-INT, 1099-DIV, 1099-B, 1099-MISC, etc.
+- `realEstate[]` — Schedule E rental properties with address, rent, expenses
+- `stateResidencies[]` — `[{ state: "WA" }]` (residency state)
+- `estimatedTaxes[]`, `f1098es[]`, `f3921s[]`, `scheduleK1Form1065s[]`
+- `healthSavingsAccounts[]`, `credits[]`, `individualRetirementArrangements[]`
+- `itemizedDeductions` — null for standard deduction
+- `questions` — `{}`
+
+## Rental property expenses (Schedule E)
+
+```json
+"expenses": {
+  "advertising": 0, "auto": 0, "cleaning": 0, "commissions": 0,
+  "insurance": 0, "legal": 0, "management": 0, "mortgage": 0,
+  "otherInterest": 0, "repairs": 0, "supplies": 0, "taxes": 0,
+  "utilities": 0, "depreciation": 0, "other": 0
+}
+```
+
+## When parsing user documents
+
+- Extract data from W-2s, 1099s, property management statements, HOA ledgers
+- Map to the JSON fields above
+- Place the file at `my-files/parsed-import.json`
+- Run `npm run cli -- my-files/parsed-import.json -o my-files/output`
+- Verify with `npx ts-node scripts/dump-pdf-fields.ts my-files/output/LastName-1040.pdf`

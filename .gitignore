@@ -33,3 +33,6 @@ yarn-error.log*
 
 /logs/
 /src/core/data/validate-fns.js
+
+# User tax data and generated PDFs (keep parsed-import, PDFs, and uploads local)
+/my-files/

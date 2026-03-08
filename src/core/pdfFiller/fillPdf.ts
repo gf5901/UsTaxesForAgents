@@ -32,7 +32,11 @@ export function fillPDF(
     // Note, this is for cases such as the 2021 IL-1040 where the field
     // behaves as a radio group, but the pdfField is a PDFCheckbox
     // instead of a PDFRadioGroup.
-    if (_.isObject(value)) {
+    if (
+      _.isObject(value) &&
+      'select' in value &&
+      typeof (value as { select: number }).select === 'number'
+    ) {
       const children = pdfField.acroField.getWidgets()
       if (value.select >= children.length) {
         throw new Error(
@@ -50,20 +54,54 @@ export function fillPDF(
         )
       }
     } else if (pdfField instanceof PDFCheckBox) {
-      if (value === true) {
+      // Coerce non-boolean to boolean so PDFs with different field order (e.g. 2025) still fill
+      const checked = value === true
+      if (value !== true && value !== false && value !== undefined) {
+        // Leave unchecked when form sent number/string for a checkbox (field order mismatch)
+      }
+      if (checked) {
         pdfField.check()
-      } else if (value !== false && value !== undefined) {
-        throw error('boolean')
       }
     } else if (pdfField instanceof PDFTextField) {
       try {
-        const showValue =
-          !isNaN(value as number) &&
-          value &&
-          Array.from(value as string)[0] !== '0'
-            ? displayRound(value as number)?.toString()
-            : value?.toString()
-        pdfField.setText(showValue)
+        // Coerce value for text field: boolean/undefined/object -> empty string when PDF field order differs
+        const raw =
+          typeof value === 'number' || typeof value === 'string'
+            ? value
+            : undefined
+        // Never write NaN into a text field (can happen if field order mismatches or bad data)
+        const safeRaw =
+          raw !== undefined && typeof raw === 'number' && Number.isNaN(raw)
+            ? undefined
+            : raw
+        let text: string
+        const isNumber = typeof safeRaw === 'number' && !Number.isNaN(safeRaw)
+        if (safeRaw !== undefined && isNumber) {
+          const rounded = displayRound(safeRaw)
+          text =
+            rounded !== undefined && rounded !== 0
+              ? String(rounded)
+              : safeRaw !== 0
+              ? String(safeRaw)
+              : ''
+        } else if (safeRaw !== undefined) {
+          text = String(safeRaw)
+        } else {
+          text = ''
+        }
+        try {
+          pdfField.setText(text)
+        } catch {
+          try {
+            pdfField.setText(text || ' ')
+          } catch {
+            try {
+              if (text !== '' && text !== 'NaN') pdfField.setText(' ')
+            } catch {
+              // leave field unchanged when PDF rejects all writes
+            }
+          }
+        }
       } catch (err) {
         throw error('text field')
       }

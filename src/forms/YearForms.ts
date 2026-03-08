@@ -1,17 +1,27 @@
-import { Information, Asset } from 'ustaxes/core/data'
-import { Either, isLeft, isRight, left, run, runAsync } from 'ustaxes/core/util'
+import { Information, Asset, State } from 'ustaxes/core/data'
+import {
+  Either,
+  isLeft,
+  isRight,
+  left,
+  right,
+  run,
+  runAsync
+} from 'ustaxes/core/util'
 import { TaxYear } from 'ustaxes/core/data'
 import { create1040 as create1040For2020 } from 'ustaxes/forms/Y2020/irsForms/Main'
 import { create1040 as create1040For2021 } from 'ustaxes/forms/Y2021/irsForms/Main'
 import { create1040 as create1040For2022 } from 'ustaxes/forms/Y2022/irsForms/Main'
 import { create1040 as create1040For2023 } from 'ustaxes/forms/Y2023/irsForms/Main'
 import { create1040 as create1040For2024 } from 'ustaxes/forms/Y2024/irsForms/Main'
+import { create1040 as create1040For2025 } from 'ustaxes/forms/Y2025/irsForms/Main'
 
 import F1040For2020 from 'ustaxes/forms/Y2020/irsForms/F1040'
 import F1040For2021 from 'ustaxes/forms/Y2021/irsForms/F1040'
 import F1040For2022 from 'ustaxes/forms/Y2022/irsForms/F1040'
 import F1040For2023 from 'ustaxes/forms/Y2023/irsForms/F1040'
 import F1040For2024 from 'ustaxes/forms/Y2024/irsForms/F1040'
+import F1040For2025 from 'ustaxes/forms/Y2025/irsForms/F1040'
 
 import Form from 'ustaxes/core/irsForms/Form'
 import StateForm from 'ustaxes/core/stateForms/Form'
@@ -21,6 +31,7 @@ import { createStateReturn as createStateReturn2021 } from 'ustaxes/forms/Y2021/
 import { createStateReturn as createStateReturn2022 } from 'ustaxes/forms/Y2022/stateForms'
 import { createStateReturn as createStateReturn2023 } from 'ustaxes/forms/Y2023/stateForms'
 import { createStateReturn as createStateReturn2024 } from 'ustaxes/forms/Y2024/stateForms'
+import { createStateReturn as createStateReturn2025 } from 'ustaxes/forms/Y2025/stateForms'
 import { PDFDocument } from 'pdf-lib'
 import { fillPDF } from 'ustaxes/core/pdfFiller/fillPdf'
 import {
@@ -143,6 +154,42 @@ export class YearCreateForm {
     return r2.value()
   }
 
+  /** Returns one PDF per state (e.g. for multi-state or nonresident returns). */
+  stateReturnBytesByState = async (): Promise<
+    Either<string[], { state: State; bytes: Uint8Array }[]>
+  > => {
+    const r = this.makeStateReturn()
+    if (isLeft(r)) return left(r.left.map(String))
+
+    const byState = r.right.reduce((acc, form) => {
+      const s = form.state
+      const list = acc[s] ?? []
+      list.push(form)
+      acc[s] = list
+      return acc
+    }, {} as Partial<Record<State, StateForm[]>>)
+
+    const results = await Promise.all(
+      (Object.entries(byState) as [State, StateForm[]][]).map(
+        async ([state, forms]) => {
+          const pdfs = await Promise.all(
+            forms.map(async (form) =>
+              fillPDF(
+                await this.config.getStatePDF(form),
+                form.renderedFields(),
+                form.formName
+              )
+            )
+          )
+          const combined = await combinePdfs(pdfs)
+          const bytes = await combined.save()
+          return { state, bytes: new Uint8Array(bytes) }
+        }
+      )
+    )
+    return right(results)
+  }
+
   canCreateFederal = (): boolean => isRight(this.f1040())
 
   canCreateState = (): boolean => isRight(this.makeStateReturn())
@@ -210,6 +257,11 @@ export class CreateForms {
         ...baseConfig,
         createF1040: takeSecond(create1040For2024),
         createStateReturn: (f: Form) => createStateReturn2024(f as F1040For2024)
+      },
+      Y2025: {
+        ...baseConfig,
+        createF1040: takeSecond(create1040For2025),
+        createStateReturn: (f: Form) => createStateReturn2025(f as F1040For2025)
       }
     }
 

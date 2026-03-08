@@ -1,0 +1,54 @@
+---
+description: UsTaxesForAgents project architecture and conventions
+alwaysApply: true
+---
+
+# UsTaxesForAgents
+
+Fork of UsTaxes optimized for AI agents generating tax PDFs via CLI.
+
+## Quick start
+
+```sh
+npm run cli -- my-files/parsed-import.json -o my-files/output
+```
+
+Produces `LastName-1040.pdf`, `LastName-UT.pdf`, etc.
+
+## Key paths
+
+- `scripts/run-cli.ts` — CLI entry point (reads JSON, builds forms, writes PDFs)
+- `scripts/dump-pdf-fields.ts` — Dump filled PDF field values for verification
+- `my-files/` — User tax documents and output (gitignored, never commit)
+- `my-files/parsed-import.json` — The JSON input consumed by the CLI
+- `src/forms/Y20XX/` — Per-year form implementations (irsForms/, stateForms/)
+- `src/forms/YearForms.ts` — Orchestrates form creation and PDF generation
+- `src/core/pdfFiller/fillPdf.ts` — Fills PDF fields from form data arrays
+- `src/core/data/index.ts` — Core TypeScript types (Information, TaxYear, State, etc.)
+- `public/forms/Y20XX/` — Blank IRS/state PDF templates
+
+## Architecture
+
+1. JSON input → `validate()` → `ValidatedInformation`
+2. `create1040(info, assets)` → `[F1040, Form[]]` (federal forms + schedules)
+3. `createStateReturn(f1040)` → `StateForm[]` (residency + income states)
+4. Each form has `fields(): Field[]` mapping values to PDF field indices
+5. `fillPDF()` writes values into the blank PDF template
+6. `combinePdfs()` merges multi-page forms; one PDF per state
+
+## Adding a new state
+
+1. Download blank PDFs to `public/forms/Y20XX/states/ST/`
+2. Run `npm run formgen public/forms/Y20XX/states/ST/FormName.pdf` to get field indices
+3. Create form classes in `src/forms/Y20XX/stateForms/ST/` (main form + schedules)
+4. Register in `src/forms/Y20XX/stateForms/index.ts`
+5. Add tests in `src/forms/Y20XX/tests/states/`
+
+## Conventions
+
+- `Field[]` arrays must match the PDF field count exactly (use `Array.from({ length: N }, () => undefined)`)
+- Use `Either<E, A>` (`left`/`right`) for error handling, never throw in form logic
+- State forms extend `StateForm` from `ustaxes/core/stateForms/Form`
+- Federal forms extend `Form` from `ustaxes/core/irsForms/Form`
+- Build must pass with `CI=true` (warnings are errors): run `npm run build`
+- Never commit files under `my-files/`
