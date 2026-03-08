@@ -58,6 +58,21 @@ const F = {
   line26: 37,
   line27: 38,
   line28: 39,
+  line29: 40,
+  line30: 41,
+  line31: 42,
+  line32: 43,
+  line33: 44,
+  line34: 45,
+  line35: 46,
+  line36: 47,
+  line37: 48,
+  line38: 49,
+  line39: 50,
+  line40: 51,
+  line41: 52,
+  line42: 53,
+  line43: 54,
   filingStatus: 90,
   residency: 91,
   partYearDates: 92
@@ -170,22 +185,37 @@ export default class TC40 extends Form {
   /** Other credits (Line 24) — e.g. nonrefundable; 0 if not used */
   line24 = (): number => 0
 
-  /** Withholding from W-2s with state UT */
-  utahWithholding = (): number =>
-    this.info.w2s
-      .filter((w) => w.state === 'UT')
-      .reduce((s, w) => s + (w.stateWithholding ?? 0), 0)
-
-  /** Final Utah tax for payment/refund: resident = Line 22 - Line 24; nonresident = TC-40B Line 41 */
-  finalUtahTax = (): number => {
+  /** Line 25: resident = Line 23 - Line 24; nonresident = TC-40B Line 41 */
+  line25 = (): number => {
     if (this.isNonresident()) {
       return this.tc40b.apportionedTax()
     }
     return Math.max(0, this.line22() - this.line24())
   }
 
-  /** Tax owed (positive) or refund (negative) */
-  payment = (): number => this.finalUtahTax() - this.utahWithholding()
+  /** Line 26: Nonapportionable nonrefundable credits (TC-40A Part 4) */
+  line26 = (): number => 0
+
+  /** Line 27 = Line 25 - Line 26, not less than zero */
+  line27 = (): number => Math.max(0, this.line25() - this.line26())
+
+  /** Line 32: Total tax (= Line 27 + Lines 28–31, simplified) */
+  line32 = (): number => this.line27()
+
+  /** Line 33: Total withholding from W-2s/1099s with state UT (TC-40W) */
+  utahWithholding = (): number =>
+    this.info.w2s
+      .filter((w) => w.state === 'UT')
+      .reduce((s, w) => s + (w.stateWithholding ?? 0), 0)
+
+  /** Line 37: Total payments and credits (= Line 33 + Lines 34–36, simplified) */
+  line37 = (): number => this.utahWithholding()
+
+  /** Line 38: Overpayment = Line 37 - Line 32, if positive */
+  line38Overpayment = (): number => Math.max(0, this.line37() - this.line32())
+
+  /** Line 42: Tax due = Line 32 - Line 37, if positive */
+  line42TaxDue = (): number => Math.max(0, this.line32() - this.line37())
 
   fields = (): Field[] => {
     const arr: Field[] = Array.from(
@@ -213,31 +243,37 @@ export default class TC40 extends Form {
     arr[F.exemptionB] = this.line2b() || undefined
     arr[F.exemptionTotalD] = this.line2d() || undefined
 
+    // Page 1 — Lines 4–22 (show 0 explicitly to avoid rejection)
     arr[F.line4] = this.federalAGI()
-    arr[F.line5] = this.line5() || undefined
+    arr[F.line5] = this.line5()
     arr[F.line6] = this.line6()
-    arr[F.line7] = this.line7() || undefined
-    arr[F.line8] = this.line8() || undefined
+    arr[F.line7] = this.line7()
+    arr[F.line8] = this.line8()
     arr[F.line9] = this.line9()
     arr[F.line10] = this.line10()
-    arr[F.line11] = this.line11() || undefined
+    arr[F.line11] = this.line11()
     arr[F.line12] = this.line12()
     arr[F.line13] = this.line13()
-    arr[F.line14] = this.line14() || undefined
+    arr[F.line14] = this.line14()
     arr[F.line15] = this.line15()
     arr[F.line16] = this.line16()
     arr[F.line17] = this.line17()
-    arr[F.line18] = this.line18() || undefined
-    arr[F.line19] = this.line19() || undefined
+    arr[F.line18] = this.line18()
+    arr[F.line19] = this.line19()
     arr[F.line20] = this.line20()
     arr[F.line22] = this.line22()
 
-    arr[F.line23] = this.line22()
-    arr[F.line24] = this.line24() || undefined
-    arr[F.line25] = this.finalUtahTax()
-    arr[F.line26] = this.utahWithholding()
-    arr[F.line27] = Math.max(0, this.payment())
-    arr[F.line28] = Math.max(0, -this.payment())
+    // Page 2 — Lines 23–43
+    arr[F.line23] = this.line22() // Line 23 = Utah income tax
+    arr[F.line24] = this.line24() // Line 24 = other credits
+    arr[F.line25] = this.line25() // Line 25 = tax (apportioned for NR)
+    arr[F.line26] = this.line26() // Line 26 = nonapportionable credits
+    arr[F.line27] = this.line27() // Line 27 = Line 25 - Line 26
+    arr[F.line32] = this.line32() // Line 32 = total tax
+    arr[F.line33] = this.utahWithholding() // Line 33 = total withholding (TC-40W)
+    arr[F.line37] = this.line37() // Line 37 = total payments and credits
+    arr[F.line38] = this.line38Overpayment() // Line 38 = overpayment (refund)
+    arr[F.line42] = this.line42TaxDue() // Line 42 = tax due
     return arr
   }
 }
