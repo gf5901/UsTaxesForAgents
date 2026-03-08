@@ -9,7 +9,7 @@ import {
   ValidatedInformation,
   ValidatedTaxpayer
 } from 'ustaxes/forms/F1040Base'
-import { blankYearTaxesState, YearsTaxesState } from 'ustaxes/redux'
+import { blankYearTaxesState, YearsTaxesState } from 'ustaxes/core/state'
 
 const lower: Arbitrary<string> = fc
   .integer({ min: 0x61, max: 0x7a })
@@ -224,16 +224,18 @@ const propertyType: Arbitrary<types.PropertyTypeName> = fc.constantFrom(
 
 const propertyExpenses: Arbitrary<
   Partial<{ [K in types.PropertyExpenseTypeName]: number }>
-> = fc.set(propExpenseTypeName).chain((es) =>
-  fc
-    .array(expense, { minLength: es.length, maxLength: es.length })
-    .map((nums) =>
-      _.chain(es)
-        .zipWith(nums, (e, num) => [e, num])
-        .fromPairs()
-        .value()
-    )
-)
+> = fc
+  .uniqueArray(propExpenseTypeName)
+  .chain((es: types.PropertyExpenseTypeName[]) =>
+    fc
+      .array(expense, { minLength: es.length, maxLength: es.length })
+      .map((nums) =>
+        _.chain(es)
+          .zipWith(nums, (e, num) => [e, num])
+          .fromPairs()
+          .value()
+      )
+  )
 
 const f1098e: Arbitrary<types.F1098e> = fc
   .tuple(maxWords(2), interest)
@@ -728,6 +730,63 @@ export const asset: Arbitrary<types.Asset> = fc
     openFee,
     quantity
   }))
+
+const taxYear: Arbitrary<types.TaxYear> = fc.constantFrom(
+  ...util.enumKeys(types.TaxYears)
+)
+const taxYearNumber = taxYear.map((y) => types.TaxYears[y])
+const dateInYear = (year: number) =>
+  fc.date({ min: new Date(year, 0, 1), max: new Date(year, 11, 31) })
+const taxYearDate = taxYearNumber.chain(dateInYear)
+const orUndefined = <T>(arb: Arbitrary<T>) =>
+  fc.oneof(arb, fc.constant(undefined))
+
+export const positionDate: Arbitrary<types.Asset> = fc
+  .tuple(
+    fc.date(),
+    orUndefined(taxYearDate),
+    fc.oneof(
+      fc.constant<types.AssetType>('Security'),
+      fc.constant<types.AssetType>('Real Estate')
+    )
+  )
+  .chain(([openDate, closeDate, positionType]) =>
+    fc
+      .tuple(
+        word,
+        orUndefined(fc.date({ min: openDate })),
+        fc.nat(),
+        fc.nat(),
+        fc.nat(),
+        fc.nat(),
+        fc.nat(),
+        state
+      )
+      .map(
+        ([
+          name,
+          giftedDate,
+          openPrice,
+          closePrice,
+          quantity,
+          openFee,
+          closeFee,
+          stateVal
+        ]) => ({
+          name,
+          openDate,
+          closeDate,
+          giftedDate: closeDate === undefined ? giftedDate : undefined,
+          openPrice,
+          closePrice,
+          openFee,
+          closeFee: closeDate === undefined ? undefined : closeFee,
+          positionType,
+          quantity: positionType === 'Real Estate' ? 1 : quantity,
+          state: stateVal
+        })
+      )
+  )
 
 export const yearsTaxesState: Arbitrary<YearsTaxesState> = fc
   .tuple(forYear(2021).information(), fc.array(asset))

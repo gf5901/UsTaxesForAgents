@@ -8,7 +8,7 @@ import { displayRound } from 'ustaxes/core/irsForms/util'
 import { testKit, commonTests } from '.'
 import { FilingStatus, IncomeW2, PersonRole } from 'ustaxes/core/data'
 import { run } from 'ustaxes/core/util'
-import { blankState } from 'ustaxes/redux/reducer'
+import { blankState } from 'ustaxes/core/state'
 import { ValidatedInformation } from 'ustaxes/forms/F1040Base'
 import * as fc from 'fast-check'
 

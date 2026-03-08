@@ -3,7 +3,7 @@ import * as fc from 'fast-check'
 import { Address, Dependent, Information, PrimaryPerson } from '../data'
 import log from '../log'
 import * as validators from '../data/validate'
-import { dateToStringPerson, infoToStringInfo } from 'ustaxes/redux/data'
+import { dateToStringPerson, infoToStringInfo } from 'ustaxes/core/state'
 
 /* eslint-disable @typescript-eslint/no-empty-function */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */

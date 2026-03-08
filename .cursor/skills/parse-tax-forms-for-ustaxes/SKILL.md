@@ -15,13 +15,11 @@ User has put tax documents (e.g. W-2, 1099) in the repo (e.g. `my-files/`) and w
    User provides paths or @-references (e.g. `my-files/*.pdf`). Read PDFs or images (JPEG, PNG, GIF, WebP). If only PDFs exist, read them; the tool can often extract text from PDFs.
 
 2. **Map to UsTaxes types**
-
    - **W-2:** Map to `IncomeW2` in `src/core/data/index.ts`: Box 1→`income`, 2→`fedWithholding`, 3→`ssWages`, 4→`ssWithholding`, 5→`medicareIncome`, 6→`medicareWithholding`, 12→`box12` (e.g. D, DD), state wages/withholding if present. Use `personRole`: `"PRIMARY"` or `"SPOUSE"`. `occupation` can be `""`.
    - **1099-INT/DIV/B/R/SSA:** Map to the corresponding `Supported1099` shape (`payer`, `type`, `form` with the right data object, `personRole`).
    - **1099-MISC:** Not supported by UsTaxes. Extract amounts (e.g. Box 1 Rents) and tell the user to enter them manually (e.g. Schedule E or Other income). Do not add to `f1099s`.
 
 3. **Build full state JSON**
-
    - Structure: `assets: []`, `Y2019`…`Y2024` (each an `Information` object), `activeYear: "Y2024"`.
    - Use `blankState` from `src/redux/reducer.ts` for years with no data.
    - Put parsed W-2s and 1099s in the appropriate year (e.g. `Y2024`).
@@ -30,7 +28,6 @@ User has put tax documents (e.g. W-2, 1099) in the repo (e.g. `my-files/`) and w
    - Use `null` for `itemizedDeductions`; do not use `undefined` in JSON.
 
 4. **Write output**
-
    - Save as a single JSON file (e.g. `my-files/parsed-import.json`).
    - Optionally add a short README (e.g. `my-files/IMPORT-README.txt`) with: what was included, what was skipped (e.g. 1099-MISC), and how to load in UsTaxes (User Settings → Load).
 

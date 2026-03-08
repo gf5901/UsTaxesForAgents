@@ -1,8 +1,8 @@
 import { exec } from 'child_process'
 
-// fs.cp since 16.7
-export const requiredNodeVersion = [16, 7]
-export const requiredNpmVersion = [7, 0]
+// Node 20+ LTS
+export const requiredNodeVersion = [20, 0]
+export const requiredNpmVersion = [10, 0]
 
 const showError = (...errLines: string[]): void => {
   const maxLineLen = 78
@@ -101,5 +101,5 @@ const main = async (): Promise<void> => {
 export default main
 
 if (require.main === module) {
-  main()
+  void main()
 }

@@ -5,7 +5,6 @@ import { Information, Asset, TaxYear, TaxYears } from 'ustaxes/core/data'
 import Form from 'ustaxes/core/irsForms/Form'
 import { run } from 'ustaxes/core/util'
 import * as arbitraries from 'ustaxes/core/tests/arbitraries'
-import * as ustarbitraries from 'ustaxes/tests/arbitraries'
 import { localPDFs } from 'ustaxes/core/tests/LocalForms'
 import fs from 'fs/promises'
 import path from 'path'
@@ -107,7 +106,7 @@ export default class TestKit {
   ): fc.IAsyncPropertyWithHooks<[ValidatedInformation, Asset<Date>[]]> =>
     fc.asyncProperty(
       this.arbitaries.information().filter(filter),
-      fc.array(ustarbitraries.positionDate),
+      fc.array(arbitraries.positionDate),
       async (information, assets): Promise<void> => {
         const builder = this.builder.build(information, assets)
         await run(builder.f1040()).fold(

@@ -131,10 +131,9 @@ export const runAsync = <E, A>(
   e: Promise<Either<E, A>>
 ): Promise<EitherMethods<E, A>> => e.then(run)
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any,@typescript-eslint/no-unsafe-member-access
-export const isDesktop = (): boolean => (window as any).__TAURI__ !== undefined
+export const isDesktop = (): boolean => false
 
-export const isWeb = (): boolean => !isDesktop()
+export const isWeb = (): boolean => false
 
 // Decimal precision
 

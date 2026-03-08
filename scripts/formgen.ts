@@ -136,9 +136,9 @@ const main = () => {
     process.exit()
   }
 
-  generate(args[0])
+  void generate(args[0])
 }
 
 if (require.main === module) {
-  main()
+  void main()
 }

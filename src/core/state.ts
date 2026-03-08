@@ -1,11 +1,26 @@
-import { Asset, Information, Person, TaxYear } from 'ustaxes/core/data'
-import { blankState } from './reducer'
+import { Asset, Information, Person, TaxYear } from './data'
 
 /**
- * This is a simplified form of our global TaxesState
- * which allows TaxesState to be viewed as if if contained
- * data for a single year.
+ * Blank information state used as initial/default value.
+ * Moved from redux/reducer for CLI-only use.
  */
+export const blankState: Information = {
+  f1099s: [],
+  w2s: [],
+  estimatedTaxes: [],
+  realEstate: [],
+  taxPayer: { dependents: [] },
+  questions: {},
+  f1098es: [],
+  f3921s: [],
+  scheduleK1Form1065s: [],
+  itemizedDeductions: undefined,
+  stateResidencies: [],
+  healthSavingsAccounts: [],
+  credits: [],
+  individualRetirementArrangements: []
+}
+
 export type TaxesState = { information: Information }
 
 export type YearsTaxesState<D = Date> = { [K in TaxYear]: Information<D> } & {

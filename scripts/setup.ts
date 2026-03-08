@@ -23,7 +23,7 @@ const schema = createGenerator(config).createSchema(config.type)
 const ajv = new Ajv({
   schemas: [schema, indexSchema],
   allowUnionTypes: true,
-  code: { source: true, esm: true }
+  code: { source: true, esm: false }
 })
 
 const moduleCode = standaloneCode(ajv, {

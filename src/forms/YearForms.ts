@@ -161,13 +161,16 @@ export class YearCreateForm {
     const r = this.makeStateReturn()
     if (isLeft(r)) return left(r.left.map(String))
 
-    const byState = r.right.reduce((acc, form) => {
-      const s = form.state
-      const list = acc[s] ?? []
-      list.push(form)
-      acc[s] = list
-      return acc
-    }, {} as Partial<Record<State, StateForm[]>>)
+    const byState = r.right.reduce(
+      (acc, form) => {
+        const s = form.state
+        const list = acc[s] ?? []
+        list.push(form)
+        acc[s] = list
+        return acc
+      },
+      {} as Partial<Record<State, StateForm[]>>
+    )
 
     const results = await Promise.all(
       (Object.entries(byState) as [State, StateForm[]][]).map(

@@ -142,7 +142,7 @@ export class ILWIT extends Form {
     this.methods
       .stateW2s()
       .map((w2) => toWithholdingForm(w2))
-      .filter((x) => x !== undefined) as WithholdingForm[]
+      .filter((x) => x !== undefined)
 
   formsByRole = (role: PersonRole): WithholdingForm[] =>
     this.allWithholdingForms().filter((w2) => w2.role === role)

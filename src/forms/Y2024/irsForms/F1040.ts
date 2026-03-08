@@ -527,7 +527,7 @@ export default class F1040 extends F1040Base {
         ? this.info.taxPayer.spouse?.firstName
         : '',
       this.info.taxPayer.filingStatus === FilingStatus.MFJ
-        ? this.info.taxPayer.spouse?.lastName ?? ''
+        ? (this.info.taxPayer.spouse?.lastName ?? '')
         : '',
       this.info.taxPayer.spouse?.ssid,
       this.info.taxPayer.primaryPerson.address.address,
@@ -546,7 +546,9 @@ export default class F1040 extends F1040Base {
       this.info.taxPayer.filingStatus === FilingStatus.MFS,
       this.info.taxPayer.filingStatus === FilingStatus.W,
       // TODO: implement non dependent child for HOH and QW
-      this.info.taxPayer.filingStatus === 'MFS' ? this.spouseFullName() : '',
+      this.info.taxPayer.filingStatus === FilingStatus.MFS
+        ? this.spouseFullName()
+        : '',
       false, //teating non-resident alien
       '',
       this.info.questions.CRYPTO ?? false,

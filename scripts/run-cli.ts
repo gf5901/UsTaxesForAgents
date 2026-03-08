@@ -37,7 +37,11 @@ function createFsDownloader(year: TaxYear): PDFDownloader {
       )
     }
     const bytes = fs.readFileSync(filePath)
-    return await PDFDocument.load(bytes as ArrayBuffer)
+    const arrayBuffer = bytes.buffer.slice(
+      bytes.byteOffset,
+      bytes.byteOffset + bytes.byteLength
+    )
+    return await PDFDocument.load(arrayBuffer)
   }
 }
 

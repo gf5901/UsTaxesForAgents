@@ -82,8 +82,8 @@ export function fillPDF(
             rounded !== undefined && rounded !== 0
               ? String(rounded)
               : safeRaw !== 0
-              ? String(safeRaw)
-              : ''
+                ? String(safeRaw)
+                : ''
         } else if (safeRaw !== undefined) {
           text = String(safeRaw)
         } else {

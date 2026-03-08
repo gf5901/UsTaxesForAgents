@@ -1,4 +1,4 @@
-import { YearsTaxesState } from 'ustaxes/redux'
+import { YearsTaxesState } from 'ustaxes/core/state'
 import {
   F3921,
   Ira,

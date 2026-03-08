@@ -2,12 +2,12 @@ import { FilingStatus } from 'ustaxes/core/data'
 import { CURRENT_YEAR } from '../data/federal'
 import { computeOrdinaryTax } from '../irsForms/TaxTable'
 import fs from 'fs/promises'
-import { parseCsvOrThrow } from 'ustaxes/data/csvImport'
+import { parseCsvOrThrow } from 'ustaxes/core/csvParse'
 
 const getTaxTable = async (): Promise<number[][]> => {
   const path = './src/forms/Y2022/tests/taxTable.csv'
   const taxTableCsv = (await fs.readFile(path)).toString('utf-8')
-  return parseCsvOrThrow(taxTableCsv, (r: string[], rowNum) =>
+  return parseCsvOrThrow(taxTableCsv, (r: string[], rowNum: number) =>
     // ignore heading row.
     rowNum > 0 ? [r.map((s) => Number(s))] : []
   )

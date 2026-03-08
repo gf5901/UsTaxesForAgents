@@ -1,169 +1,77 @@
 <div align="center">
 <h1><a href="//ustaxes.org">USTaxes</a></h1>
 
-[![Netlify Status][netlify-badge]][netlify-url] [![Github Latest Release][release-badge]][github-release] [![discord-badge]][discord-url] [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/9884/badge)](https://www.bestpractices.dev/projects/9884)
+[![Github Latest Release][release-badge]][github-release]
 
 </div>
 
-> **This fork (UsTaxesForAgents)** is aimed at **AI agents and CLI workflows**. You can generate federal and state tax PDFs from a JSON input file without running the web app—ideal for use with Cursor, Claude Code, or other agents that need to fill forms from structured data. See [CLI for AI agents](#cli-for-ai-agents) below.
+> **This fork (UsTaxesForAgents)** is a **CLI-only** build aimed at **AI agents and automation**. Generate federal and state tax PDFs from a JSON input file—no web app or desktop UI. Ideal for Cursor, Claude Code, or other agents that fill forms from structured data.
 
 ## What is UsTaxes?
 
-UsTaxes is a free, open-source tax filing application that can be used to file the Federal 1040 form. It is available in both [web](https://ustaxes.org/) and [desktop][desktop-releases] versions. It is provided free of charge and requires no sharing of personal data.
+UsTaxes is a free, open-source tax filing application. This fork provides a command-line tool that produces Federal 1040 and state return PDFs from validated JSON. No server; no personal data leaves your machine.
 
-**Interested in contributing? [Get Started](#user-content-get-started)**
+## Supported income data
 
-## Supported Income data
-
-Most income and deduction information from the following forms are supported for tax years 2023, 2022, 2021 and 2020.
+Most income and deduction information from the following forms are supported for tax years 2020–2025:
 
 - W2
 - 1099-INT
 - 1099-DIV
 - 1099-B
 - 1098-E
-- 1099-R: support for normal distributions from IRA and pension accounts.
+- 1099-R (normal distributions from IRA and pension)
 - SSA-1099
 
-So far, this project can attach the following schedules to form 1040:
-
-- Schedule 1 (as to Schedule E and 1098-E data only)
-- Schedule 2
-- Schedule 3 (as to excess FICA tax only)
-- Schedule 8812
-- Schedule B
-- Schedule D
-- Schedule E
-- F1040-V
-- F8949 (Uncovered Investment Transactions)
-- F8889 (Health Savings Accounts)
-- F8959 (Additional Medicare Tax)
-- F8960 (Net Investment Income Tax)
-
-## Supported Credits
-
-- Credit for children and other dependents
-- Earned income credit
+Schedules and forms attached to 1040 include Schedule 1 (E, 1098-E), 2, 3, 8812, B, D, E, F1040-V, F8949, F8889, F8959, F8960, and others as implemented per year.
 
 ## Supported states
 
-### Implemented State returns
+See `/src/forms/Y20XX/stateForms/` for implemented states (e.g. Utah, Illinois) and coverage. Non-filing states (e.g. WA, TX, FL) require no state return.
 
-The states below have been implemented partially for tax year 2021. See the `/src/stateForms/<state>/<relevant form>` file for details on unimplemented portions.
+## Get started
 
-- Illinois
-
-### Non-filing states
-
-Users who only have wage income and live in the states below should be able to file taxes using this site, since they do not have state level income tax.
-
-- Alaska
-- Florida
-- Nevada
-- New Hampshire
-- South Dakota
-- Tennessee
-- Texas
-- Washington
-- Wyoming
-
-## Note on using this project
-
-This project is built by a growing community. If you notice an error in the outputted PDF or any other error, please submit an issue on the Github issues tab. We appreciate your feedback!
-
-## User Data
-
-The project is available strictly via client side. Data is persisted to the site's localstorage so _no personal information ever leaves the user's computer._ For those who want extra security, the codebase can also be built as a [desktop application](#desktop-application).
-
-## Contributing
-
-Thank you for taking the time to contribute; let's make tax filing free for everyone! 🎉
-
-To ensure the project is fun for every contributor, please review:
-
-- [Code of conduct](docs/CODE_OF_CONDUCT.md)
-- [Contributing guide](docs/CONTRIBUTING.md)
-- [Project Architecture](docs/ARCHITECTURE.md)
-
-## Get Started
-
-This application can be run as a **CLI** (for agents), a **web application**, or a [standalone desktop application](#user-content-desktop-application).
-
-### CLI for AI agents
-
-Generate federal and state PDFs from a JSON file (e.g. exported from the web app or built by an agent):
+**Requirements:** Node.js 20+ (see `.nvmrc`; Node 24 recommended). Use [nvm](https://github.com/nvm-sh/nvm) if needed:
 
 ```sh
+nvm use
+```
+
+### Install and run CLI
+
+```sh
+npm ci
 npm run cli -- my-files/parsed-import.json -o my-files/output
 ```
 
-Options: `--output, -o DIR` (default: `my-files/output`), `--year, -y YYYY`, `--federal-only`. The JSON must include `activeYear` and the corresponding year key (e.g. `Y2025`). Output is one PDF per return (e.g. `LastName-1040.pdf`, `LastName-UT.pdf`).
+Options: `--output, -o DIR` (default: `my-files/output`), `--year, -y YYYY`, `--federal-only`.  
+Input JSON must include `activeYear` and the matching year key (e.g. `Y2025`). Output is one PDF per return (e.g. `LastName-1040.pdf`, `LastName-UT.pdf`).
 
-### Web application
-
-This project runs on Node 20. To ensure you're on the proper version, we recommend [nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
-
-With `nvm` installed, you may select a version 20 node using:
+### Development
 
 ```sh
-nvm install 20
-nvm use 20
+npm test          # run tests (Jest)
+npm run lint      # ESLint + Prettier
+npm run lint:fix  # fix lint and format
+npm run formgen   # generate form scaffolding from a PDF (see scripts/formgen.ts)
 ```
 
-To run,
+## Project layout
 
-```sh
-npm ci          # install package dependencies
-npm run start   # run app
-```
+- `scripts/run-cli.ts` — CLI entry; reads JSON, builds forms, writes PDFs
+- `scripts/dump-pdf-fields.ts` — dump filled PDF field values for verification
+- `src/forms/Y20XX/` — per-year federal and state form logic
+- `src/core/` — data types, PDF filling, validation
+- `public/forms/Y20XX/` — blank IRS/state PDF templates
 
-Note: To avoid having to set your node versions, we suggest using a tool like [direnv](https://direnv.net). With the following configuration file as `.envrc` in project root:
+## Contributing
 
-```sh
-export NVM_DIR="$HOME/.nvm"
-
-. "$NVM_DIR/nvm.sh"  # This loads nvm
-#. "$NVM_DIR/bash_completion"  # Optional, nvm bash completion
-
-nvm install 20
-nvm use 20
-```
-
-your environment will be set up every time you enter the project directory.
-
-#### Docker
-
-If preferred, a Docker alternative is available:
-
-```sh
-docker-compose build
-docker-compose up
-```
-
-Open a browser to `http://localhost:3000`.
-
-To stop and remove running containers, run `docker-compose down`.
-
-### Desktop application
-
-The desktop application is built with [Tauri][tauri-root]. In addition to the above steps, please [follow this reference for setting up your environment for Tauri][tauri-setup].
-
-Once your environment is set up for Tauri, run, `npm run desktop`. To avoid a browser window being spawned in addition to the desktop window, just set the BROWSER environment variable as in: `BROWSER=none npm run desktop`.
-
-To build executables, run `npm run desktop-release`.
+See [Contributing guide](docs/CONTRIBUTING.md) and [Architecture](docs/ARCHITECTURE.md).
 
 ## Getting help
 
-Please reach out to us on our [discord][discord-url] if you run into any problems, or [file an issue][github-issues]. Thank you for your support!
+[File an issue][github-issues] or open a discussion on the repo.
 
-[netlify-badge]: https://api.netlify.com/api/v1/badges/41efe456-a85d-4fed-9fcf-55fe4d5aa7fa/deploy-status
-[netlify-url]: https://app.netlify.com/sites/peaceful-joliot-d51349/deploys
-[cargo-docs]: https://doc.rust-lang.org/cargo/getting-started/installation.html
-[discord-badge]: https://img.shields.io/discord/812156892343828500?logo=Discord
-[discord-url]: https://discord.gg/dAaz472mPz
 [github-release]: https://github.com/gf5901/UsTaxesForAgents/releases/latest
 [release-badge]: https://badgen.net/github/release/gf5901/UsTaxesForAgents
-[desktop-releases]: https://github.com/gf5901/UsTaxesForAgents/releases/
 [github-issues]: https://github.com/gf5901/UsTaxesForAgents/issues
-[tauri-setup]: https://tauri.studio/en/docs/getting-started/intro/#setting-up-your-environment
-[tauri-root]: https://tauri.studio

@@ -61,7 +61,6 @@ In order to help this error prone process, there's also a script that should be 
 - For a new UI form that needs its own page, add to routes in [Main.tsx](../src/components/Main.tsx)
 - A UI form can push new data into the state using Redux actions. Define your new action in [src/redux/actions.ts](../src/redux/actions.ts), and add your state updates to [src/redux/reducer.ts](../src/redux/reducer.ts)
 - If there is a new attachment to the 1040:
-
   - The blank form goes in `public/forms/`. The locations of all supported attachments and logic about what attachments are required, is in [fillPdf.ts](../src/pdfFiller/fillPdf.ts).
   - The data model for the PDF goes in [irsForms](../src/irsForms), and implements the `Form` interface as above. There is a script we use to generate a base implementation of the form. To generate this base implementation, run
 
