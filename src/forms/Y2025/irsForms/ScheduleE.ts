@@ -127,7 +127,11 @@ export default class ScheduleE extends F1040Attachment {
   royaltyExpenses = (): number | undefined => undefined
 
   l20 = (): MatrixRow =>
-    fill(_.unzip(this.allExpenses()).map((column) => sumFields(column)))
+    fill(
+      _.unzip([...this.allExpenses(), this.l19()[1]]).map((column) =>
+        sumFields(column)
+      )
+    )
 
   l21 = (): MatrixRow =>
     _.zipWith(
