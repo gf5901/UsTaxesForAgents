@@ -38,6 +38,7 @@ const baseInfo: Information = {
   f1098es: [],
   f3921s: [],
   scheduleK1Form1065s: [],
+  scheduleCBusinesses: [],
   itemizedDeductions: undefined,
   stateResidencies: [{ state: WA }],
   healthSavingsAccounts: [],

@@ -71,6 +71,7 @@ export default class F1040 extends F1040Base {
   scheduleA: ScheduleA
   scheduleB: ScheduleB
   scheduleC?: ScheduleC
+  scheduleCForms?: ScheduleC[]
   scheduleD: ScheduleD
   scheduleE: ScheduleE
   scheduleSE: ScheduleSE
@@ -139,6 +140,12 @@ export default class F1040 extends F1040Base {
     this.f8959 = new F8959(this)
     this.f8960 = new F8960(this)
 
+    const businesses = this.info.scheduleCBusinesses ?? []
+    if (businesses.length > 0) {
+      this.scheduleCForms = businesses.map((b) => new ScheduleC(this, b))
+      this.scheduleC = this.scheduleCForms[0]
+    }
+
     if (this.f1099ssas().length > 0) {
       const ssws = new SocialSecurityBenefitsWorksheet(this)
       this.socialSecurityBenefitsWorksheet = ssws
@@ -194,6 +201,7 @@ export default class F1040 extends F1040Base {
       this.scheduleR,
       this.scheduleEIC,
       this.schedule8812,
+      ...(this.scheduleCForms ?? []),
       this.f4797,
       this.f4952,
       this.f4972,
@@ -515,8 +523,12 @@ export default class F1040 extends F1040Base {
   _depFieldMappings = (): Array<string | boolean> =>
     Array.from(Array(20)).map((u, n: number) => this._depField(n))
 
-  fields = (): Field[] =>
-    [
+  /** Digital asset question (Yes/No). Default false = No when unanswered so return is not rejected. */
+  digitalAssetYes = (): boolean => this.info.questions.CRYPTO === true
+  digitalAssetNo = (): boolean => this.info.questions.CRYPTO !== true
+
+  fields = (): Field[] => {
+    const arr: Field[] = [
       '',
       '',
       '',
@@ -551,8 +563,8 @@ export default class F1040 extends F1040Base {
         : '',
       false, //teating non-resident alien
       '',
-      this.info.questions.CRYPTO ?? false,
-      !(this.info.questions.CRYPTO ?? false),
+      this.digitalAssetYes(),
+      this.digitalAssetNo(),
       this.info.taxPayer.primaryPerson.isTaxpayerDependent,
       this.info.taxPayer.spouse?.isTaxpayerDependent ?? false,
       false, // TODO: spouse itemizes separately,
@@ -649,5 +661,10 @@ export default class F1040 extends F1040Base {
       '',
       '',
       ''
-    ].map((x) => (x === undefined ? '' : x))
+    ]
+    // 2025 Form 1040: digital asset Yes/No checkboxes are at PDF field indices 43 and 44
+    arr[43] = this.digitalAssetYes()
+    arr[44] = this.digitalAssetNo()
+    return arr.map((x) => (x === undefined ? '' : x))
+  }
 }

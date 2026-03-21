@@ -16,6 +16,8 @@ export default class Schedule1 extends F1040Attachment {
 
   isNeeded = (): boolean =>
     this.f1040.scheduleE.isNeeded() ||
+    (this.f1040.scheduleCForms ?? []).length > 0 ||
+    this.f1040.scheduleSE.isNeeded() ||
     (this.f1040.studentLoanInterestWorksheet !== undefined &&
       this.f1040.studentLoanInterestWorksheet.notMFS() &&
       this.f1040.studentLoanInterestWorksheet.isNotDependent()) ||
@@ -25,7 +27,13 @@ export default class Schedule1 extends F1040Attachment {
   l1 = (): number | undefined => undefined
   l2a = (): number | undefined => undefined
   l2b = (): number | undefined => undefined
-  l3 = (): number | undefined => undefined
+  l3 = (): number | undefined => {
+    const total = (this.f1040.scheduleCForms ?? []).reduce(
+      (sum, sc) => sum + sc.l31(),
+      0
+    )
+    return total > 0 ? total : undefined
+  }
   l4 = (): number | undefined => undefined
   l5 = (): number | undefined => this.f1040.scheduleE.l41()
   l6 = (): number | undefined => undefined

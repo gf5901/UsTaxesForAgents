@@ -560,6 +560,44 @@ export interface Credit {
   type: CreditType
 }
 
+export interface ScheduleCBusinessExpenses {
+  advertising?: number
+  carAndTruck?: number
+  commissions?: number
+  contractLabor?: number
+  depletion?: number
+  depreciation?: number
+  employeeBenefits?: number
+  insurance?: number
+  mortgageInterest?: number
+  otherInterest?: number
+  legal?: number
+  office?: number
+  pension?: number
+  rentVehicles?: number
+  rentOther?: number
+  repairs?: number
+  supplies?: number
+  taxesAndLicenses?: number
+  travel?: number
+  meals?: number
+  utilities?: number
+  wages?: number
+  otherExpenses?: number
+  otherExpenseType?: string
+}
+
+export interface ScheduleCBusiness {
+  businessName: string
+  businessActivity?: string
+  businessCode?: string
+  grossReceipts: number
+  costOfGoodsSold?: number
+  otherIncome?: number
+  expenses?: ScheduleCBusinessExpenses
+  personRole: PersonRole.PRIMARY | PersonRole.SPOUSE
+}
+
 export interface Information<D = Date> {
   f1099s: Supported1099[]
   w2s: IncomeW2[]
@@ -568,6 +606,7 @@ export interface Information<D = Date> {
   f1098es: F1098e[]
   f3921s: F3921[]
   scheduleK1Form1065s: ScheduleK1Form1065[]
+  scheduleCBusinesses: ScheduleCBusiness[]
   itemizedDeductions: ItemizedDeductions | undefined
   refund?: Refund
   taxPayer: TaxPayer<D>
