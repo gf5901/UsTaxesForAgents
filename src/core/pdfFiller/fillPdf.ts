@@ -54,13 +54,14 @@ export function fillPDF(
         )
       }
     } else if (pdfField instanceof PDFCheckBox) {
-      // Coerce non-boolean to boolean so PDFs with different field order (e.g. 2025) still fill
-      const checked = value === true
+      // Must explicitly uncheck: blank IRS templates sometimes ship with /Yes defaults;
+      // only calling check() when true leaves prior on-state visible in the output PDF.
       if (value !== true && value !== false && value !== undefined) {
-        // Leave unchecked when form sent number/string for a checkbox (field order mismatch)
-      }
-      if (checked) {
+        // Leave unchanged when form sent number/string for a checkbox (field order mismatch)
+      } else if (value === true) {
         pdfField.check()
+      } else {
+        pdfField.uncheck()
       }
     } else if (pdfField instanceof PDFTextField) {
       try {
